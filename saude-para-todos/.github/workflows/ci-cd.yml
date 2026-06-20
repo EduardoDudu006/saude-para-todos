@@ -1,0 +1,32 @@
+cat << 'EOF' > .github/workflows/ci-cd.yml
+name: Pipeline de Integração Contínua (CI)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar Dependências
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Executar Testes Unitários
+      run: |
+        cd backend
+        # Comando de teste simulado (pode ser expandido com pytest)
+        python -c "import main; print('Módulos carregados com sucesso!')"
+EOF

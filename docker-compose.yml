@@ -1,0 +1,31 @@
+cat << 'EOF' > docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: saude_db
+    restart: always
+    environment:
+      POSTGRES_USER: saude_admin
+      POSTGRES_PASSWORD: saude_secure_pass123
+      POSTGRES_DB: saude_para_todos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: saude_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://saude_admin:saude_secure_pass123@db:5432/saude_para_todos
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+EOF
