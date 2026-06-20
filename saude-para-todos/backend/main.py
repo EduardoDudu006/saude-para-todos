@@ -1,4 +1,3 @@
-cat << 'EOF' > backend/main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -6,7 +5,7 @@ from typing import List, Optional
 
 app = FastAPI(title="Saúde Para Todos - API", version="1.0.0")
 
-# Habilitar CORS para o Frontend Web e Mobile
+# Habilitar CORS para permitir requisições do Frontend Web e do Mobile
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,6 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Modelo de Dados usando Pydantic v2
 class Appointment(BaseModel):
     id: Optional[int] = None
     patient_name: str
@@ -22,6 +22,7 @@ class Appointment(BaseModel):
     date_time: str
     status: str = "Agendado"
 
+# Banco de dados simulado em memória para o MVP do projeto
 db_appointments = [
     {
         "id": 1,
@@ -54,4 +55,3 @@ def get_health_units():
         {"id": 1, "name": "Unidade Móvel Zonas Periféricas", "location": "Itaquera - Feira Livre", "status": "Ativo"},
         {"id": 2, "name": "UBS Central", "location": "Centro Operacional", "status": "Ativo"}
     ]
-EOF

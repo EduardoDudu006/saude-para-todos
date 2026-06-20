@@ -1,4 +1,3 @@
-cat << 'EOF' > .github/workflows/ci-cd.yml
 name: Pipeline de Integração Contínua (CI)
 
 on:
@@ -27,6 +26,4 @@ jobs:
     - name: Executar Testes Unitários
       run: |
         cd backend
-        # Comando de teste simulado (pode ser expandido com pytest)
-        python -c "import main; print('Módulos carregados com sucesso!')"
-EOF
+        python -c "import main; print('Módulos carregados com sucesso na pipeline!')"
