@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import logoImg from "./logo.png";
+import logoImg from "./logo.png"; // Certifique-se de que a imagem existe nesta pasta
 
 function App() {
     // ==========================================
@@ -19,7 +19,6 @@ function App() {
     const [isSharingBpm, setIsSharingBpm] = useState(false);
 
     // ESTADO FORMULÁRIO DE AGENDAMENTO (VIEW 6)
-    // Contém todos os novos campos solicitados para a validação
     const [newAppointment, setNewAppointment] = useState({
         cidade: "",
         rede: "",
@@ -28,6 +27,14 @@ function App() {
         data: "",
         hora: "",
     });
+
+    // ESTADO CONTATOS DE EMERGÊNCIA (VIEW 8)
+    // Gerenciamento dinâmico para cadastrar telefone e habilitar/desabilitar contato
+    const [personalContacts, setPersonalContacts] = useState([
+        { id: 1, label: "Contato 01", telefone: "", ativo: true },
+        { id: 2, label: "Contato 02", telefone: "", ativo: true },
+        { id: 3, label: "Contato 03", telefone: "", ativo: true },
+    ]);
 
     // ESTADOS DO MÓDULO DE ATIVIDADE FÍSICA
     const [activeActivity, setActiveActivity] = useState(null);
@@ -40,12 +47,11 @@ function App() {
     });
     const [activityInterval, setActivityInterval] = useState(null);
 
-    // MÓDULO DE MÉTRICAS FIXAS (EXEMPLO)
+    // MÓDULO DE MÉTRICAS FIXAS
     const [healthMetrics] = useState({
         bpm: 76,
         sono: "7h 20m",
         estresse: "Normal",
-        recomendacoes: "Análise Ativa",
         iaRecommendation:
             "Seu nível de estresse reduziu 12% após a melhoria do sono. Excelente evolução! Continue mantendo a hidratação constante durante as rotas externas hoje.",
     });
@@ -55,12 +61,11 @@ function App() {
         bpm: [72, 75, 78, 82, 74, 76, 76],
         sono: [6.5, 7.0, 5.8, 7.2, 6.8, 7.3, 7.3],
         apineias: [1, 0, 2, 4, 1, 0, 1],
-        estresse: [20, 35, 55, 75, 40, 25, 20],
         dias: ["Ter", "Qua", "Qui", "Sex", "Sáb", "Dom", "Seg"],
     };
 
     // ==========================================
-    // COMPORTAMENTOS E COMPONENTES DE EFEITO (EFEITOS DE CARREGAMENTO)
+    // CARREGAMENTO DE DADOS ASSÍNCRONOS (API)
     // ==========================================
     useEffect(() => {
         Promise.all([
@@ -82,7 +87,19 @@ function App() {
             });
     }, []);
 
-    // ENVIO DE INFORMAÇÕES DE ESTRESSE
+    // ==========================================
+    // FUNÇÕES DE MANIPULAÇÃO DE EVENTOS
+    // ==========================================
+
+    // Atualiza campo de telefone ou status ativo/inativo dos contatos pessoais
+    const updateContact = (id, field, value) => {
+        setPersonalContacts(
+            personalContacts.map((c) =>
+                c.id === id ? { ...c, [field]: value } : c,
+            ),
+        );
+    };
+
     const handleStressSubmit = (e) => {
         e.preventDefault();
         if (!userStressText.trim()) return;
@@ -90,19 +107,17 @@ function App() {
         setAiStressFeedback({
             analise: `Identificamos que seu estado (${userMood}) coincide com uma noite de sono anterior de 7.3h. Cruzando com seu histórico médico de prontuário e as flutuações de batimentos cardíacos (média 76 BPM), a IA sugere evitar cafeína após as 16h hoje.`,
             sugestoes: [
-                "Prática Saudável: 10 minutos de meditação guiada focada na respiração diafragmática.",
-                "Atividade ao Ar Livre: Uma caminhada leve de 20 minutos no fim da tarde para regulação do cortisol.",
-                "Ajuste de Rotina: Pausa activa de 5 minutos a cada 2 horas de trabalho contínuo.",
+                "Prática Saudável: 10 minutos de meditação guiada focada na respiração.",
+                "Atividade ao Ar Livre: Uma caminhada leve de 20 minutos no fim da tarde.",
+                "Ajuste de Rotina: Pausa ativa de 5 minutos a cada 2 horas de trabalho contínuo.",
             ],
         });
         setUserStressText("");
     };
 
-    // PROCESSAMENTO E SUBMISSÃO DO NOVO AGENDAMENTO (VIEW 6)
     const handleScheduleSubmit = (e) => {
         e.preventDefault();
 
-        // Criação do novo item estruturado para a tabela do painel principal
         const createdAppointment = {
             id: appointments.length + 1,
             patient_name: "Eduardo Luz",
@@ -111,13 +126,11 @@ function App() {
             status: "Agendado",
         };
 
-        // Atualização do estado local injetando o novo elemento no topo
         setAppointments([createdAppointment, ...appointments]);
         alert(
             `Consulta agendada com sucesso para a cidade de ${newAppointment.cidade}!`,
         );
 
-        // Limpeza de formulário e redirecionamento seguro
         setNewAppointment({
             cidade: "",
             rede: "",
@@ -129,7 +142,6 @@ function App() {
         setCurrentPage("dashboard");
     };
 
-    // MONITORAMENTO DE EXERCÍCIOS ATIVOS
     const startPhysicalActivity = (type) => {
         if (activityInterval) clearInterval(activityInterval);
         setActiveActivity(type);
@@ -150,11 +162,7 @@ function App() {
                         ? 0
                         : prev.passos + Math.floor(Math.random() * 3) + 1;
                 const velAtual =
-                    type === "Corrida"
-                        ? 10 + Math.random()
-                        : type === "Ciclismo"
-                          ? 18 + Math.random()
-                          : 4 + Math.random();
+                    type === "Corrida" ? 10 + Math.random() : 4 + Math.random();
                 const distNova = prev.distancia + velAtual / 3600;
                 const relevos = [
                     "Plano",
@@ -186,7 +194,7 @@ function App() {
             setActivityInterval(null);
         }
         alert(
-            `Atividade de ${activeActivity} salva no seu histórico com sucesso! Total percorrido: ${activityStats.distancia} km.`,
+            `Atividade de ${activeActivity} salva no seu histórico! Total percorrido: ${activityStats.distancia} km.`,
         );
         setActiveActivity(null);
     };
@@ -194,9 +202,7 @@ function App() {
     return (
         <div style={styles.body}>
             <div style={styles.contentWrapper}>
-                {/* ==========================================
-            BARRA DE NAVEGAÇÃO SUPERIOR
-           ========================================== */}
+                {/* BARRA DE NAVEGAÇÃO SUPERIOR */}
                 <header style={styles.navbar}>
                     <div
                         style={styles.brandContainer}
@@ -226,13 +232,11 @@ function App() {
                     </div>
                 </header>
 
+                {/* CONTENEDOR CENTRAL */}
                 <div style={styles.mainContainer}>
-                    {/* ==========================================
-              VIEW 1: DASHBOARD PRINCIPAL
-             ========================================== */}
+                    {/* VIEW 1: DASHBOARD PRINCIPAL */}
                     {currentPage === "dashboard" && (
                         <>
-                            {/* Coluna Esquerda: Métricas e IA */}
                             <section style={styles.leftColumn}>
                                 <div style={styles.iaCard}>
                                     <div style={styles.iaHeader}>
@@ -249,8 +253,7 @@ function App() {
                                 </div>
 
                                 <h2 style={styles.sectionHeading}>
-                                    Saúde Para Todos — Métricas Ativas (Clique
-                                    para Abrir)
+                                    Métricas Ativas & Serviços
                                 </h2>
                                 <div style={styles.metricsGrid}>
                                     <div
@@ -277,7 +280,7 @@ function App() {
                                             </span>
                                         </p>
                                         <span style={styles.metricStatusStable}>
-                                            Monitoramento & Compartilhamento ➔
+                                            Monitoramento Ativo ➔
                                         </span>
                                     </div>
 
@@ -302,7 +305,7 @@ function App() {
                                             {healthMetrics.sono}
                                         </p>
                                         <span style={styles.metricStatusStable}>
-                                            Qualidade, Horas & Apneias ➔
+                                            Horas & Apneias ➔
                                         </span>
                                     </div>
 
@@ -329,34 +332,7 @@ function App() {
                                             {healthMetrics.estresse}
                                         </p>
                                         <span style={styles.metricStatusStable}>
-                                            Diário de Espírito & Cruzamento ➔
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        style={styles.clickableCard}
-                                        onClick={() =>
-                                            setCurrentPage("recomendacoes")
-                                        }
-                                    >
-                                        <div style={styles.metricHeader}>
-                                            <span
-                                                style={{
-                                                    fontSize: "22px",
-                                                    color: "#319795",
-                                                }}
-                                            >
-                                                📜
-                                            </span>
-                                            <span style={styles.metricLabel}>
-                                                Recomendações
-                                            </span>
-                                        </div>
-                                        <p style={styles.metricValue}>
-                                            Estilo de Vida
-                                        </p>
-                                        <span style={styles.metricStatusStable}>
-                                            Prontuário & Relatórios IA ➔
+                                            Diário de Humor ➔
                                         </span>
                                     </div>
 
@@ -383,7 +359,7 @@ function App() {
                                             Rede Integrada
                                         </p>
                                         <span style={styles.metricStatusStable}>
-                                            Móvel, UBS & Telemedicina ➔
+                                            UBS, Hospitais & Móvel ➔
                                         </span>
                                     </div>
 
@@ -410,7 +386,7 @@ function App() {
                                             Mapeamento
                                         </p>
                                         <span style={styles.metricStatusStable}>
-                                            Passos, Velocidade & Relevo ➔
+                                            Sensores Ativos ➔
                                         </span>
                                     </div>
 
@@ -448,7 +424,6 @@ function App() {
                                 </div>
                             </section>
 
-                            {/* Coluna Direita: Unidades do SUS/Móveis e Grade de Agendamentos Cadastrados */}
                             <section style={styles.rightColumn}>
                                 <h2 style={styles.sectionHeading}>
                                     Unidades Móveis e Postos Ativos
@@ -464,7 +439,7 @@ function App() {
                                             >
                                                 <div>
                                                     <h4 style={styles.unitName}>
-                                                        🚐 {unit.name}
+                                                        === {unit.name}
                                                     </h4>
                                                     <p
                                                         style={
@@ -543,9 +518,7 @@ function App() {
                         </>
                     )}
 
-                    {/* ==========================================
-              VIEW 2: BATIMENTOS CARDÍACOS
-             ========================================== */}
+                    {/* VIEW 2: BATIMENTOS CARDÍACOS */}
                     {currentPage === "bpm" && (
                         <div style={styles.fullWidthView}>
                             <div style={styles.viewHeader}>
@@ -566,17 +539,13 @@ function App() {
                                 >
                                     {isSharingBpm
                                         ? "🛑 Interromper Compartilhamento"
-                                        : "📡 Compartilhar em Tempo Real com Médico"}
+                                        : "📡 Compartilhar em Tempo Real"}
                                 </button>
                             </div>
-                            <p>
-                                Seus dados estão sendo transmitidos via
-                                ecossistema seguro.
-                            </p>
                             {isSharingBpm && (
                                 <div style={styles.liveAlert}>
-                                    🟢 Transmissão Activa: O seu cardiologista
-                                    possui acesso síncrono.
+                                    🟢 Transmissão Activa com o corpo médico
+                                    habilitado.
                                 </div>
                             )}
                             <div style={styles.chartContainer}>
@@ -598,21 +567,10 @@ function App() {
                                     </div>
                                 ))}
                             </div>
-                            <div style={styles.iaCard}>
-                                <h4>
-                                    🤖 Relatório Gerado por IA (Cardio-Análise)
-                                </h4>
-                                <p style={{ margin: 0 }}>
-                                    Variabilidade de frequência cardíaca dentro
-                                    dos parâmetros ideais de repouso.
-                                </p>
-                            </div>
                         </div>
                     )}
 
-                    {/* ==========================================
-              VIEW 3: MONITORAMENTO DO SONO
-             ========================================== */}
+                    {/* VIEW 3: MONITORAMENTO DO SONO */}
                     {currentPage === "sono" && (
                         <div style={styles.fullWidthView}>
                             <h2>
@@ -652,13 +610,11 @@ function App() {
                         </div>
                     )}
 
-                    {/* ==========================================
-              VIEW 4: NÍVEL DE ESTRESSE
-             ========================================== */}
+                    {/* VIEW 4: NÍVEL DE ESTRESSE */}
                     {currentPage === "estresse" && (
                         <div style={styles.fullWidthView}>
                             <h2>
-                                ⚡ Diário de Espírito e Cruzamento de Rotina com
+                                ⚡ Diário de Espírito e Análise Preventiva com
                                 IA
                             </h2>
                             <div style={styles.formSection}>
@@ -689,61 +645,31 @@ function App() {
                                         onChange={(e) =>
                                             setUserStressText(e.target.value)
                                         }
-                                        placeholder="Relate o seu dia..."
+                                        placeholder="Descreva os fatores estressores do seu dia ou rotina..."
                                     />
                                     <button
                                         type="submit"
                                         style={styles.submitButton}
                                     >
-                                        Enviar para Cruzamento da IA
+                                        Enviar para Análise Cruzada
                                     </button>
                                 </form>
                             </div>
                             {aiStressFeedback && (
                                 <div style={styles.aiResultBlock}>
-                                    <h3>✨ Diagnóstico da IA</h3>
+                                    <h3>✨ Diagnóstico Predictivo da IA</h3>
                                     <p>{aiStressFeedback.analise}</p>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {/* ==========================================
-              VIEW 5: RECOMENDAÇÕES
-             ========================================== */}
-                    {currentPage === "recomendacoes" && (
-                        <div style={styles.fullWidthView}>
-                            <h2>
-                                📜 Central Unificada de Recomendações Saudáveis
-                                (IA)
-                            </h2>
-                            <div style={styles.gridTwoColumns}>
-                                <div style={styles.iaCard}>
-                                    <h3>🍏 Estilo de Vida</h3>
-                                    <p>Aumentar hidratação para 3L diários.</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ==========================================
-              VIEW 6: AGENDAR CONSULTA (ATUALIZADA)
-             ========================================== */}
+                    {/* VIEW 6: AGENDAR CONSULTA */}
                     {currentPage === "agendar" && (
                         <div style={styles.fullWidthView}>
                             <h2>
                                 ✍️ Agendamento Unificado na Rede Credenciada
                             </h2>
-                            <p
-                                style={{
-                                    color: "#718096",
-                                    marginBottom: "20px",
-                                }}
-                            >
-                                Preencha todas as opções abaixo para visualizar
-                                o resumo e liberar o botão de confirmação.
-                            </p>
-
                             <form
                                 onSubmit={handleScheduleSubmit}
                                 style={{
@@ -753,15 +679,7 @@ function App() {
                                     gap: "15px",
                                 }}
                             >
-                                {/* Campo: Cidade */}
-                                <label
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        fontWeight: "600",
-                                        fontSize: "14px",
-                                    }}
-                                >
+                                <label style={styles.fieldLabel}>
                                     Cidade:
                                     <input
                                         type="text"
@@ -777,16 +695,7 @@ function App() {
                                         required
                                     />
                                 </label>
-
-                                {/* Campo: Rede Credenciada */}
-                                <label
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        fontWeight: "600",
-                                        fontSize: "14px",
-                                    }}
-                                >
+                                <label style={styles.fieldLabel}>
                                     Rede Credenciada:
                                     <select
                                         style={styles.input}
@@ -814,20 +723,11 @@ function App() {
                                         </option>
                                     </select>
                                 </label>
-
-                                {/* Campo: Especialidade */}
-                                <label
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        fontWeight: "600",
-                                        fontSize: "14px",
-                                    }}
-                                >
+                                <label style={styles.fieldLabel}>
                                     Especialidade:
                                     <input
                                         type="text"
-                                        placeholder="Ex: Clínico Geral, Cardiologia"
+                                        placeholder="Ex: Cardiologia"
                                         style={styles.input}
                                         value={newAppointment.especialidade}
                                         onChange={(e) =>
@@ -839,20 +739,11 @@ function App() {
                                         required
                                     />
                                 </label>
-
-                                {/* Campo: Médico */}
-                                <label
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        fontWeight: "600",
-                                        fontSize: "14px",
-                                    }}
-                                >
+                                <label style={styles.fieldLabel}>
                                     Médico:
                                     <input
                                         type="text"
-                                        placeholder="Ex: Dr. Carlos Silva"
+                                        placeholder="Ex: Dr. Carlos"
                                         style={styles.input}
                                         value={newAppointment.medico}
                                         onChange={(e) =>
@@ -864,16 +755,11 @@ function App() {
                                         required
                                     />
                                 </label>
-
-                                {/* Campos Alinhados: Data e Hora */}
                                 <div style={{ display: "flex", gap: "15px" }}>
                                     <label
                                         style={{
+                                            ...styles.fieldLabel,
                                             flex: 1,
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            fontWeight: "600",
-                                            fontSize: "14px",
                                         }}
                                     >
                                         Data:
@@ -890,14 +776,10 @@ function App() {
                                             required
                                         />
                                     </label>
-
                                     <label
                                         style={{
+                                            ...styles.fieldLabel,
                                             flex: 1,
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            fontWeight: "600",
-                                            fontSize: "14px",
                                         }}
                                     >
                                         Hora:
@@ -916,56 +798,26 @@ function App() {
                                     </label>
                                 </div>
 
-                                {/* EXIBIÇÃO CONDICIONAL: Só renderiza se absolutamente todos os dados estiverem preenchidos */}
                                 {newAppointment.cidade &&
                                     newAppointment.rede &&
                                     newAppointment.especialidade &&
                                     newAppointment.medico &&
                                     newAppointment.data &&
                                     newAppointment.hora && (
-                                        <div
-                                            style={{
-                                                marginTop: "15px",
-                                                padding: "20px",
-                                                backgroundColor: "#f7fafc",
-                                                border: "1px solid #cbd5e0",
-                                                borderRadius: "8px",
-                                                boxShadow:
-                                                    "0 2px 4px rgba(0,0,0,0.02)",
-                                            }}
-                                        >
-                                            <h4
-                                                style={{
-                                                    margin: "0 0 12px 0",
-                                                    color: "#1a5f60",
-                                                    fontSize: "16px",
-                                                    borderBottom:
-                                                        "1px solid #e2e8f0",
-                                                    paddingBottom: "6px",
-                                                }}
-                                            >
+                                        <div style={styles.summaryContainer}>
+                                            <h4 style={styles.summaryTitle}>
                                                 📋 Resumo do Agendamento
                                             </h4>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    gap: "6px",
-                                                    fontSize: "14px",
-                                                    color: "#4a5568",
-                                                }}
-                                            >
-                                                <p style={{ margin: 0 }}>
+                                            <div style={styles.summaryContent}>
+                                                <p>
                                                     <strong>Cidade:</strong>{" "}
                                                     {newAppointment.cidade}
                                                 </p>
-                                                <p style={{ margin: 0 }}>
-                                                    <strong>
-                                                        Rede Credenciada:
-                                                    </strong>{" "}
+                                                <p>
+                                                    <strong>Rede:</strong>{" "}
                                                     {newAppointment.rede}
                                                 </p>
-                                                <p style={{ margin: 0 }}>
+                                                <p>
                                                     <strong>
                                                         Especialidade:
                                                     </strong>{" "}
@@ -973,31 +825,25 @@ function App() {
                                                         newAppointment.especialidade
                                                     }
                                                 </p>
-                                                <p style={{ margin: 0 }}>
+                                                <p>
                                                     <strong>Médico:</strong>{" "}
                                                     {newAppointment.medico}
                                                 </p>
-                                                <p style={{ margin: 0 }}>
+                                                <p>
                                                     <strong>Data:</strong>{" "}
                                                     {newAppointment.data
                                                         .split("-")
                                                         .reverse()
-                                                        .join("/")}
-                                                </p>
-                                                <p style={{ margin: 0 }}>
-                                                    <strong>Horário:</strong>{" "}
-                                                    {newAppointment.hora}
+                                                        .join("/")}{" "}
+                                                    às {newAppointment.hora}
                                                 </p>
                                             </div>
-
-                                            {/* Botão para Confirmar posicionado logo abaixo do resumo */}
                                             <button
                                                 type="submit"
                                                 style={{
                                                     ...styles.submitButton,
                                                     width: "100%",
                                                     marginTop: "20px",
-                                                    backgroundColor: "#1a5f60",
                                                 }}
                                             >
                                                 Confirmar Marcação
@@ -1008,12 +854,10 @@ function App() {
                         </div>
                     )}
 
-                    {/* ==========================================
-              VIEW 7: ATIVIDADE FÍSICA
-             ========================================== */}
+                    {/* VIEW 7: ATIVIDADE FÍSICA */}
                     {currentPage === "atividade" && (
                         <div style={styles.fullWidthView}>
-                            <h2>🏃‍♂️ Sensor de Atividade Física e Métricas</h2>
+                            <h2>🏃‍♂️ Sensor de Atividade Física Mapeada</h2>
                             {!activeActivity ? (
                                 <div style={{ display: "flex", gap: "15px" }}>
                                     <button
@@ -1025,7 +869,7 @@ function App() {
                                             startPhysicalActivity("Caminhada")
                                         }
                                     >
-                                        🚶‍♂️ Caminhada
+                                        🚶‍♂️ Iniciar Caminhada
                                     </button>
                                     <button
                                         style={{
@@ -1036,12 +880,12 @@ function App() {
                                             startPhysicalActivity("Corrida")
                                         }
                                     >
-                                        🏃‍♂️ Corrida
+                                        🏃‍♂️ Iniciar Corrida
                                     </button>
                                 </div>
                             ) : (
                                 <div style={styles.activityTrackingPanel}>
-                                    <h3>Mapeando: {activeActivity}</h3>
+                                    <h3>Mapeando Percurso: {activeActivity}</h3>
                                     <p>
                                         Distância: {activityStats.distancia} km
                                         | Velocidade: {activityStats.velocidade}{" "}
@@ -1051,7 +895,7 @@ function App() {
                                         style={styles.stopActivityBtn}
                                         onClick={stopPhysicalActivity}
                                     >
-                                        ⏹ Parar
+                                        ⏹ Salvar Atividade
                                     </button>
                                 </div>
                             )}
@@ -1059,30 +903,208 @@ function App() {
                     )}
 
                     {/* ==========================================
-              VIEW 8: EMERGÊNCIA
+              VIEW 8: CENTRAL TELEFÔNICA DE EMERGÊNCIA
              ========================================== */}
                     {currentPage === "emergencia" && (
                         <div style={styles.fullWidthView}>
-                            <h2>🚨 Central Telefônica de Emergência</h2>
+                            <h2
+                                style={{
+                                    color: "#e53e3e",
+                                    marginBottom: "20px",
+                                }}
+                            >
+                                🚨 Central Telefônica de Emergência
+                            </h2>
+
+                            {/* Números Públicos Integrados */}
                             <div style={styles.emergencyGrid}>
                                 <div style={styles.emergencyItem}>
-                                    <span>SAMU (192)</span>
+                                    <span>🚑 SAMU (192)</span>
                                     <button
                                         style={styles.callBtn}
-                                        onClick={() => alert("Ligando...")}
+                                        onClick={() =>
+                                            alert(
+                                                "Efetuando discagem para o SAMU (192)...",
+                                            )
+                                        }
                                     >
                                         Discar
                                     </button>
                                 </div>
+                                <div style={styles.emergencyItem}>
+                                    <span>🔥 Bombeiros (193)</span>
+                                    <button
+                                        style={styles.callBtn}
+                                        onClick={() =>
+                                            alert(
+                                                "Efetuando discagem para os Bombeiros (193)...",
+                                            )
+                                        }
+                                    >
+                                        Discar
+                                    </button>
+                                </div>
+                                <div style={styles.emergencyItem}>
+                                    <span>🚔 Polícia (190)</span>
+                                    <button
+                                        style={styles.callBtn}
+                                        onClick={() =>
+                                            alert(
+                                                "Efetuando discagem para a Polícia (190)...",
+                                            )
+                                        }
+                                    >
+                                        Discar
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Gerenciador de Contatos de Confiança Pessoais */}
+                            <h3
+                                style={{
+                                    marginTop: "40px",
+                                    color: "#1a5f60",
+                                    marginBottom: "5px",
+                                }}
+                            >
+                                👥 Meus Contatos de Emergência
+                            </h3>
+                            <p
+                                style={{
+                                    fontSize: "14px",
+                                    color: "#718096",
+                                    marginBottom: "25px",
+                                }}
+                            >
+                                Insira os telefones dos seus contatos de
+                                confiança. Ative ou desative cada linha conforme
+                                a sua necessidade atual.
+                            </p>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "20px",
+                                }}
+                            >
+                                {personalContacts.map((contact) => (
+                                    <div
+                                        key={contact.id}
+                                        style={{
+                                            ...styles.contactCard,
+                                            opacity: contact.ativo ? 1 : 0.55,
+                                            backgroundColor: contact.ativo
+                                                ? "#ffffff"
+                                                : "#f7fafc",
+                                            borderColor: contact.ativo
+                                                ? "#cbd5e0"
+                                                : "#e2e8f0",
+                                        }}
+                                    >
+                                        <div style={{ flex: 1 }}>
+                                            <label style={styles.contactLabel}>
+                                                {contact.label}
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                placeholder="Digite o número de telefone..."
+                                                style={styles.contactInput}
+                                                value={contact.telefone}
+                                                onChange={(e) =>
+                                                    updateContact(
+                                                        contact.id,
+                                                        "telefone",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "15px",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <span
+                                                    style={{
+                                                        fontSize: "11px",
+                                                        fontWeight: "bold",
+                                                        color: "#718096",
+                                                        marginBottom: "4px",
+                                                    }}
+                                                >
+                                                    Status
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        updateContact(
+                                                            contact.id,
+                                                            "ativo",
+                                                            !contact.ativo,
+                                                        )
+                                                    }
+                                                    style={{
+                                                        ...styles.toggleBtn,
+                                                        backgroundColor:
+                                                            contact.ativo
+                                                                ? "#38a169"
+                                                                : "#a0aec0",
+                                                    }}
+                                                >
+                                                    {contact.ativo
+                                                        ? "Ativo"
+                                                        : "Inativo"}
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                disabled={
+                                                    !contact.ativo ||
+                                                    !contact.telefone.trim()
+                                                }
+                                                style={{
+                                                    ...styles.callBtn,
+                                                    backgroundColor:
+                                                        !contact.ativo ||
+                                                        !contact.telefone.trim()
+                                                            ? "#cbd5e0"
+                                                            : "#e53e3e",
+                                                    cursor:
+                                                        !contact.ativo ||
+                                                        !contact.telefone.trim()
+                                                            ? "not-allowed"
+                                                            : "pointer",
+                                                }}
+                                                onClick={() =>
+                                                    alert(
+                                                        `Discando para o contato personalizado: ${contact.telefone}...`,
+                                                    )
+                                                }
+                                            >
+                                                📞 Discar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* ==========================================
-          FOOTER MODERNO DA PÁGINA
-         ========================================== */}
+            {/* FOOTER MODERNIZADO */}
             <footer style={styles.footer}>
                 <div style={styles.footerTopLine}></div>
                 <div style={styles.footerContainer}>
@@ -1104,18 +1126,15 @@ function App() {
 // ==========================================
 const styles = {
     body: {
-        fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        fontFamily: '"Segoe UI", sans-serif',
         backgroundColor: "#f3f7f7",
         minHeight: "100vh",
         margin: 0,
         color: "#2d3748",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
     },
-    contentWrapper: {
-        flex: 1,
-    },
+    contentWrapper: { flex: 1 },
     navbar: {
         backgroundColor: "#1a5f60",
         padding: "12px 30px",
@@ -1132,7 +1151,7 @@ const styles = {
         cursor: "pointer",
     },
     logoContainer: { display: "flex", alignItems: "center" },
-    logoImage: { height: "45px", width: "auto", objectFit: "contain" },
+    logoImage: { height: "45px", width: "auto" },
     navTitle: { margin: 0, fontSize: "22px", fontWeight: "600" },
     navLinks: { display: "flex", alignItems: "center", gap: "20px" },
     userBadge: {
@@ -1182,7 +1201,6 @@ const styles = {
         borderLeft: "5px solid #2b9393",
         borderRadius: "8px",
         padding: "20px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.02)",
     },
     iaHeader: {
         display: "flex",
@@ -1190,12 +1208,7 @@ const styles = {
         gap: "10px",
         marginBottom: "10px",
     },
-    iaTitle: {
-        margin: 0,
-        color: "#1a5f60",
-        fontSize: "16px",
-        fontWeight: "600",
-    },
+    iaTitle: { margin: 0, color: "#1a5f60", fontSize: "16px" },
     iaText: {
         margin: 0,
         fontSize: "14px",
@@ -1211,28 +1224,21 @@ const styles = {
         backgroundColor: "#ffffff",
         borderRadius: "8px",
         padding: "18px",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.03)",
         cursor: "pointer",
         border: "1px solid #edf2f7",
+        minHeight: "130px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        minHeight: "130px",
     },
-    metricHeader: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        marginBottom: "10px",
-    },
+    metricHeader: { display: "flex", alignItems: "center", gap: "8px" },
     metricLabel: { fontSize: "14px", color: "#4a5568", fontWeight: "600" },
     metricValue: {
         margin: "5px 0 12px 0",
         fontSize: "22px",
         fontWeight: "700",
-        color: "#2d3748",
     },
-    metricUnit: { fontSize: "14px", fontWeight: "400", color: "#a0aec0" },
+    metricUnit: { fontSize: "14px", color: "#a0aec0" },
     metricStatusStable: {
         fontSize: "12px",
         color: "#2b9393",
@@ -1251,14 +1257,8 @@ const styles = {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.01)",
     },
-    unitName: {
-        margin: 0,
-        fontSize: "14px",
-        color: "#1a5f60",
-        fontWeight: "600",
-    },
+    unitName: { margin: 0, fontSize: "14px", color: "#1a5f60" },
     unitLocation: { margin: "3px 0 0 0", fontSize: "13px", color: "#718096" },
     activeBadge: {
         backgroundColor: "#e6fffa",
@@ -1272,7 +1272,6 @@ const styles = {
         backgroundColor: "#ffffff",
         borderRadius: "8px",
         overflow: "hidden",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.02)",
     },
     table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
     tableHeaderRow: {
@@ -1280,7 +1279,7 @@ const styles = {
         color: "#ffffff",
         textAlign: "left",
     },
-    tableTh: { padding: "14px 16px", fontWeight: "600" },
+    tableTh: { padding: "14px 16px" },
     tableRow: { borderBottom: "1px solid #edf2f7" },
     tableTd: { padding: "14px 16px", color: "#4a5568" },
     patientNameTd: {
@@ -1307,8 +1306,6 @@ const styles = {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        flexWrap: "wrap",
-        gap: "15px",
         marginBottom: "10px",
     },
     actionBtn: {
@@ -1318,7 +1315,6 @@ const styles = {
         borderRadius: "6px",
         fontWeight: "bold",
         cursor: "pointer",
-        fontSize: "14px",
     },
     liveAlert: {
         backgroundColor: "#f0fff4",
@@ -1327,7 +1323,6 @@ const styles = {
         padding: "12px",
         borderRadius: "6px",
         margin: "15px 0",
-        fontWeight: "500",
     },
     chartContainer: {
         display: "flex",
@@ -1338,7 +1333,6 @@ const styles = {
         padding: "20px 10px 0 10px",
         backgroundColor: "#f7fafc",
         borderRadius: "6px",
-        margin: "20px 0",
     },
     chartBarWrapper: {
         display: "flex",
@@ -1348,23 +1342,21 @@ const styles = {
     },
     chartBar: { width: "35px", borderRadius: "4px 4px 0 0" },
     chartBarLabel: { fontSize: "11px", fontWeight: "bold", marginTop: "5px" },
-    chartBarDay: {
-        fontSize: "12px",
-        color: "#718096",
-        marginTop: "4px",
-        fontWeight: "600",
-    },
+    chartBarDay: { fontSize: "12px", color: "#718096", marginTop: "4px" },
     formSection: { marginTop: "20px" },
     textarea: {
         width: "100%",
         height: "100px",
         borderRadius: "6px",
-        borderColor: "#cbd5e0",
         padding: "12px",
-        fontSize: "14px",
         boxSizing: "border-box",
-        marginBottom: "12px",
         marginTop: "5px",
+    },
+    fieldLabel: {
+        display: "flex",
+        flexDirection: "column",
+        fontWeight: "600",
+        fontSize: "14px",
     },
     input: {
         width: "100%",
@@ -1374,7 +1366,6 @@ const styles = {
         fontSize: "14px",
         marginTop: "5px",
         boxSizing: "border-box",
-        outline: "none",
     },
     submitButton: {
         backgroundColor: "#1a5f60",
@@ -1384,6 +1375,24 @@ const styles = {
         borderRadius: "6px",
         cursor: "pointer",
         fontWeight: "bold",
+    },
+    summaryContainer: {
+        marginTop: "15px",
+        padding: "20px",
+        backgroundColor: "#f7fafc",
+        border: "1px solid #cbd5e0",
+        borderRadius: "8px",
+    },
+    summaryTitle: {
+        margin: "0 0 12px 0",
+        color: "#1a5f60",
+        borderBottom: "1px solid #e2e8f0",
+        paddingBottom: "6px",
+    },
+    summaryContent: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
         fontSize: "14px",
     },
     aiResultBlock: {
@@ -1393,19 +1402,12 @@ const styles = {
         borderRadius: "8px",
         marginTop: "20px",
     },
-    gridTwoColumns: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-        gap: "20px",
-        marginTop: "20px",
-    },
     activitySelectBtn: {
         color: "#ffffff",
         border: "none",
         padding: "15px 25px",
         borderRadius: "8px",
         cursor: "pointer",
-        fontSize: "16px",
         fontWeight: "bold",
     },
     activityTrackingPanel: {
@@ -1413,7 +1415,6 @@ const styles = {
         padding: "25px",
         borderRadius: "8px",
         border: "1px solid #e2e8f0",
-        marginTop: "20px",
     },
     stopActivityBtn: {
         backgroundColor: "#e53e3e",
@@ -1424,42 +1425,81 @@ const styles = {
         cursor: "pointer",
         fontWeight: "bold",
     },
+
+    // Estilos Atualizados da Página de Emergência
     emergencyGrid: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
         gap: "15px",
-        marginTop: "20px",
+        marginTop: "10px",
     },
     emergencyItem: {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "15px 20px",
+        padding: "16px 20px",
         borderRadius: "8px",
-        border: "1px solid",
+        border: "1px solid #feb2b2",
+        backgroundColor: "#fff5f5",
+        fontWeight: "600",
+        fontSize: "15px",
     },
     callBtn: {
         backgroundColor: "#e53e3e",
         color: "#ffffff",
         border: "none",
-        padding: "8px 14px",
-        borderRadius: "4px",
-        fontWeight: "bold",
+        padding: "10px 18px",
+        borderRadius: "6px",
         cursor: "pointer",
+        fontWeight: "bold",
+        fontSize: "13px",
+        display: "flex",
+        alignItems: "center",
+        gap: "5px",
+    },
+    contactCard: {
+        display: "flex",
+        alignItems: "center",
+        gap: "25px",
+        padding: "18px",
+        borderRadius: "8px",
+        border: "1px solid #cbd5e0",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.01)",
+        transition: "all 0.2s ease",
+    },
+    contactLabel: {
+        fontSize: "14px",
+        fontWeight: "700",
+        color: "#4a5568",
+        display: "block",
+        marginBottom: "6px",
+    },
+    contactInput: {
+        width: "100%",
+        padding: "10px",
+        borderRadius: "6px",
+        border: "1px solid #cbd5e0",
+        fontSize: "14px",
+        boxSizing: "border-box",
+    },
+    toggleBtn: {
+        border: "none",
+        color: "#ffffff",
+        padding: "6px 14px",
+        borderRadius: "20px",
+        fontSize: "12px",
+        cursor: "pointer",
+        fontWeight: "bold",
+        minWidth: "75px",
     },
 
-    /* ESTILOS DO FOOTER */
     footer: {
         backgroundColor: "#ffffff",
         borderTop: "1px solid #e2e8f0",
         position: "relative",
         marginTop: "60px",
     },
-    footerTopLine: {
-        height: "4px",
-        backgroundColor: "#1a5f60",
-        width: "100%",
-    },
+    footerTopLine: { height: "4px", backgroundColor: "#1a5f60", width: "100%" },
     footerContainer: {
         maxWidth: "1400px",
         margin: "0 auto",
@@ -1484,10 +1524,7 @@ const styles = {
         gap: "6px",
         fontWeight: "500",
     },
-    footerPulse: {
-        color: "#38a169",
-        fontSize: "10px",
-    },
+    footerPulse: { color: "#38a169", fontSize: "10px" },
 };
 
 export default App;
