@@ -69,10 +69,10 @@ function App() {
     // ==========================================
     useEffect(() => {
         Promise.all([
-            fetch("http://localhost:8000/appointments").then((res) =>
+            fetch(`${import.meta.env.VITE_API_URL}/appointments`).then((res) =>
                 res.json(),
             ),
-            fetch("http://localhost:8000/health-units").then((res) =>
+            fetch(`${import.meta.env.VITE_API_URL}/health-units`).then((res) =>
                 res.json(),
             ),
         ])
